@@ -47,4 +47,9 @@ void i_o_init()
 	//DATA_D0_D7_DDR = 0xFF;
 	
 	DDRB |= (1 << PB7);
+	
+	// temporary
+	DDRB &= ~(1 << PB6);
+	DDRB &= ~(1 << PB5);
+	DDRB &= ~(1 << PB4);
 }

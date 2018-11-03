@@ -14,51 +14,58 @@ int main(void)
 	system_init();
 	
 	//uint8_t in_char = 0;
-	uint8_t write_flag = 0;
-	uint8_t read_flag = 0;
-	uint32_t base = 0x00;
-	uint32_t base_address = base;
+	uint32_t base_address = 0x00;
+	uint8_t offset = 0x00;
+	
 	uint16_t data = 0;
 	uint16_t data_read = 0;
-	uint8_t first_byte = 0xDE;
-	uint8_t secon_byte = 0xAD;
+	//uint8_t first_byte = 0xDE;
+	//uint8_t secon_byte = 0xAD;
 	
-	write_flag = 0;
-	read_flag = 1;
-	//flash_erase_entire_chip();
-	//memory_good();
-	PORTB &= (1 << PB7);
-    while (1) 
-    {
-		//usart_printstr(ready_prompt);
-		data = first_byte;
-		data |= (secon_byte << 8);
-		
-		if (write_flag)
+	uint8_t control_pins_status = 0;
+	const uint8_t control_mask = 0b01110000;
+	
+	control_pins_status = PINB & control_mask;
+	PORTB &= ~(1 << PB7);
+	_delay_ms(2000);
+	if (control_pins_status == 0x70)
+	{
+		flash_erase_entire_chip();
+	}
+	
+	if (control_pins_status == 0x20)
+	{
+		for (uint32_t address = 0x00; address < 0x40000; address++)
 		{
-			for (uint8_t i = 0; i < 16; i++)
-			{
-				
-				flash_program_one_word(&base_address, &data);
-				
-				base_address++;
-				
-			}
-			
-			write_flag = 0;
-			read_flag = 1;
+			data = USART_0_read();
+			//PORTB |= (1 << PB7);
+			data |= (USART_0_read() << 8);
+			//PORTB &= ~(1 << PB7);
+			flash_program_one_word(&address, &data);
 		}
-		_delay_ms(4000);
-		base_address = 0x00;
-		while (read_flag)
+	}
+	DDRB |= (1 << PB7);
+	if (control_pins_status == 0x00)
+	{
+		
+		for (uint32_t address = base_address; address < 0x40000/*(base_address + offset)*/; address++)
 		{
 			
-			flash_read_one_word(&base_address, &data_read);
+			flash_read_one_word(&address, &data_read);
+			
 			echo(data_read);
 			echo(data_read >> 8);
-			base_address++;
-			_delay_ms(100);
+			//_delay_ms(1);
+			
 		}
+	}
+	
+	
+    while (1) 
+    {
+		_delay_ms(1000);
+
+		PORTB ^= (1 << PB7);
 	}
 }
 

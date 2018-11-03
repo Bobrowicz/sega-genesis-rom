@@ -47,17 +47,6 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L Conn_02x32_Top_Bottom J1
-U 1 1 5BB104DD
-P 2300 2900
-F 0 "J1" H 2350 4500 50  0000 C CNN
-F 1 "Conn_02x32_Top_Bottom" H 2350 1200 50  0000 C CNN
-F 2 "Connectors_Edge:Sega Genesis" H 2300 2900 50  0001 C CNN
-F 3 "" H 2300 2900 50  0001 C CNN
-	1    2300 2900
-	1    0    0    -1  
-$EndComp
-$Comp
 L Conn_01x32_Male J2
 U 1 1 5BB10599
 P 5300 2900
@@ -859,4 +848,26 @@ Text Label 7100 1500 0    39   ~ 0
 B2
 Text Label 7100 1400 0    39   ~ 0
 B1
+$Comp
+L Conn_01x32_Male J1
+U 1 1 5BB16D1F
+P 2300 2900
+F 0 "J1" H 2300 4500 50  0000 C CNN
+F 1 "Conn_01x32_Male" H 2300 1200 50  0000 C CNN
+F 2 "Connectors_Edge:Sega_Genesis" H 2300 2900 50  0001 C CNN
+F 3 "" H 2300 2900 50  0001 C CNN
+	1    2300 2900
+	-1   0    0    -1  
+$EndComp
+$Comp
+L Conn_01x32_Male J4
+U 1 1 5BB16D77
+P 2400 2900
+F 0 "J4" H 2400 4500 50  0000 C CNN
+F 1 "Conn_01x32_Male" H 2400 1200 50  0000 C CNN
+F 2 "Connectors_Edge:Sega_Genesis" H 2400 2900 50  0001 C CNN
+F 3 "" H 2400 2900 50  0001 C CNN
+	1    2400 2900
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

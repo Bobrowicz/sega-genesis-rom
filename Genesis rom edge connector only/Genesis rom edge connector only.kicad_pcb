@@ -3,7 +3,7 @@
   (general
     (links 64)
     (no_connects 0)
-    (area 86.309999 69.357142 190.550001 103.92)
+    (area 86.309999 69.357142 190.550001 100.872)
     (thickness 1.6)
     (drawings 79)
     (tracks 218)
@@ -648,7 +648,7 @@
   (gr_text D12 (at 160.02 87.376 90) (layer F.SilkS)
     (effects (font (size 1.5 1.5) (thickness 0.15)))
   )
-  (gr_text D14 (at 157.48 87.376 90) (layer F.SilkS)
+  (gr_text D13 (at 157.48 87.376 90) (layer F.SilkS)
     (effects (font (size 1.5 1.5) (thickness 0.15)))
   )
   (gr_text D14 (at 154.94 87.376 90) (layer F.SilkS)

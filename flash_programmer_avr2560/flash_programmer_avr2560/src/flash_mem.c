@@ -23,7 +23,8 @@ static inline void write_address_to_port(const uint32_t *address)
 	// Set up address on lines A8 - A15
 	ADDR_A8_A15_PORT = (*address >> 8);
 	// Set up address on lines A16 -A18
-	ADDR_A16_A18_PORT |= ((*address >> 16) & ADDR_A16_A18_MASK);
+	ADDR_A16_A18_PORT &= ~ADDR_A16_A18_MASK;
+	ADDR_A16_A18_PORT |= (*address >> 16 & ADDR_A16_A18_MASK);
 }
 
 /*
@@ -45,6 +46,16 @@ static inline void write_data_to_port(const uint16_t  *data)
  */
 static inline void byte_load_sequence(struct SDP_command *byte_sequence)
 {
+	// Set data ports to output in case they aren't
+	DATA_D0_D7_DDR = 0xFF;
+	DATA_D8_D15_DDR = 0xFF;
+	
+	// Set CE low in case it isn't
+	FLASH_CTRL_PORT &= ~(1 << CE_PIN);
+	
+	// Set OE high to disable output
+	FLASH_CTRL_PORT |= (1 << OE_PIN);
+	
 	// Struct member used to indicate length of an address/data arrays
 	for (uint8_t i = 0; i < byte_sequence->byte_count; i++)
 	{
@@ -79,14 +90,6 @@ uint8_t flash_check_id_SST_39SF040(void)
 	id_entry.data = data_sequence;
 	id_entry.byte_count = sizeof(data_sequence) / sizeof(data_sequence[0]);
 	
-	// Switch data ports to output mode so we can issue id code to memory
-	DATA_D0_D7_DDR = 0xFF;
-	DATA_D8_D15_DDR = 0xFF;
-	
-	// Sequence should start with CE low and OE high
-	FLASH_CTRL_PORT &= ~(1 << CE_PIN);
-	FLASH_CTRL_PORT |= (1 << OE_PIN);
-	
 	byte_load_sequence(&id_entry);
 	
 	// Switch data ports to input to read product id
@@ -107,6 +110,7 @@ uint8_t flash_check_id_SST_39SF040(void)
 	uint32_t dev_id_address = 0x00;
 	write_address_to_port(&dev_id_address);
 	_NOP();
+	
 	// Read manufacturer id
 	uint8_t id_1 = DATA_D0_D7_PIN;
 	id_1 = id_1 & DATA_D8_D15_PIN;
@@ -115,6 +119,7 @@ uint8_t flash_check_id_SST_39SF040(void)
 	dev_id_address++;
 	write_address_to_port(&dev_id_address);
 	_NOP();
+	
 	// Read device id
 	uint8_t id_2 = DATA_D0_D7_PIN;
 	id_2 = id_2 & DATA_D8_D15_PIN;
@@ -154,14 +159,6 @@ void flash_exit_id_SST_39SF040(void)
 	id_exit.data = data_sequence;
 	id_exit.byte_count = sizeof(data_sequence) / sizeof(data_sequence[0]);
 	
-	// Switch data ports to output mode so we can issue id code to memory
-	DATA_D0_D7_DDR = 0xFF;
-	DATA_D8_D15_DDR = 0xFF;
-	
-	// Sequence should start with CE low and OE high
-	FLASH_CTRL_PORT &= ~(1 << CE_PIN);
-	FLASH_CTRL_PORT |= (1 << OE_PIN);
-	
 	byte_load_sequence(&id_exit);
 	
 	// Pulse CE high for 150ns to finish sequence
@@ -180,21 +177,11 @@ void flash_program_one_word(uint32_t *address, uint16_t *word)
 	// 3rd byte cycle: Address: 0x5555, Data: 0xA0
 	const uint32_t address_sequence[] = {0x5555, 0x2AAA, 0x5555};
 	const uint8_t data_sequence[] = {0xAA, 0x55, 0xA0};
-		
+	
 	struct SDP_command prog_byte;
 	prog_byte.address = address_sequence;
 	prog_byte.data = data_sequence;
 	prog_byte.byte_count = sizeof(data_sequence) / sizeof(data_sequence[0]);
-	
-	// Set data ports to output in case they aren't
-	DATA_D0_D7_DDR = 0xFF;
-	DATA_D8_D15_DDR = 0xFF;
-	
-	// Set CE low in case it isn't
-	FLASH_CTRL_PORT &= ~(1 << CE_PIN);
-		
-	// Set OE high to disable output
-	FLASH_CTRL_PORT |= (1 << OE_PIN);
 	
 	byte_load_sequence(&prog_byte);
 	
@@ -210,6 +197,7 @@ void flash_program_one_word(uint32_t *address, uint16_t *word)
 	// Pull WE high to latch data
 	FLASH_CTRL_PORT |= (1 << WE_PIN);
 	_NOP(); // WE pulse width high
+	_delay_us(5);
 }
 
 void flash_read_one_word(uint32_t *address, uint16_t *word)
@@ -232,13 +220,12 @@ void flash_read_one_word(uint32_t *address, uint16_t *word)
 	
 	// Wait for address access time min 70ns
 	_NOP(); // one NOP should be 62.5ns at 16MHz
-	//_NOP();
-	
+	PORTB |= (1 << PB7);
 	// Read high byte from data lines D15 - D8
 	*word = (DATA_D8_D15_PIN << 8);
 	// Read low byte from data lines D7 - D0
 	*word |= DATA_D0_D7_PIN;
-	
+	PORTB &= ~(1 << PB7);
 	// Pull OE high to disable output
 	FLASH_CTRL_PORT |= (1 << OE_PIN);
 }
@@ -259,16 +246,6 @@ void flash_erase_entire_chip(void)
 	erase_chip.address = address_sequence;
 	erase_chip.data = data_sequence;
 	erase_chip.byte_count = sizeof(data_sequence) / sizeof(data_sequence[0]);
-	
-	// Set data ports to output in case they aren't
-	DATA_D0_D7_DDR = 0xFF;
-	DATA_D8_D15_DDR = 0xFF;
-	
-	// Set CE low in case it isn't
-	FLASH_CTRL_PORT &= ~(1 << CE_PIN);
-	
-	// Set OE high to disable output
-	FLASH_CTRL_PORT |= (1 << OE_PIN);
 	
 	byte_load_sequence(&erase_chip);
 	
